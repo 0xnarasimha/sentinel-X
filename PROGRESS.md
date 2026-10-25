@@ -57,3 +57,17 @@ sentinelx dashboard --port 8787 --state-dir tests/fixtures
 ## Next Step
 
 - Round 2 slice complete. Awaiting human execution of `sudo make lab-up && sudo make e2e` on native Linux kernel and `PHASE 2` trigger for deferred items.
+
+## Native Linux Host Verification (Oct 25 2026, CachyOS / kernel 6.x, Python 3.14.8)
+
+All items previously marked UNVERIFIED on the gVisor sandbox are now verified on a native kernel (see bench section in README.md for measured numbers):
+
+- Unit suite + linter: `pytest -m "not integration"` -> **102 passed, 1 deselected, 1 xfailed**; `ruff check sentinelx tests` -> clean. (One extra test vs. the sandbox count: `test_sigterm_stop_through_run_lifecycle_writes_daemon_stop`, the regression lock for the SIGTERM race below.)
+- Namespace lab e2e (`sudo env PATH="<repo>/.venv/bin:$PATH" bash lab/e2e.sh` — venv python must shadow system `python3` for the daemon run step): **PASS all 6 checks** (TOFU pin, stock `arpspoof` in `sx-att`, detect + verified heal, SIGTERM unpin + `daemon_stop`, `verify-log OK`, 1-byte tamper rejected).
+- 10-cycle `arpspoof` bench with benign traffic + CPU sampling + tamper check: documented in README "Performance & Reliability (Targets + Measured)".
+- Dashboard server verified live on `127.0.0.1:8787` (`/`, `/api/status` Protected banner, `/api/verify` -> `Verified, 57 entries`).
+- Interactive simulator frontend (`package.json` / `src/`): `npm install --legacy-peer-deps` (vite 8 peerOptional esbuild ^0.27/0.28 conflicts with the pinned dev esbuild 0.25 via tsx), `vite build` -> 1661 modules, `tsc --noEmit` clean, `vite dev` serves HTTP 200 with the expected `<title>`.
+
+### Bug found & fixed during native e2e (SIGTERM shutdown race)
+
+`Daemon.run()`'s signal handler scheduled `shutdown()` as a detached `asyncio` task, while `run()`'s `finally` also called `shutdown(...)` guarded by `self._stop_event.is_set()`. On SIGTERM the detached task could be cancelled during loop teardown before it logged `daemon_stop` (observed natively: log ended at `tofu_learned`, gateway pin left `PERMANENT`). Fix: signal handlers now only `_request_stop(reason)`; `run()`'s teardown is the sole owner of `shutdown()`, which is idempotent via `_shutdown_started` and carries the first stop reason. Red evidence: native `make e2e` FAIL at step 4 pre-patch + manual SIGTERM repro; green: e2e PASS above + 102-test suite.

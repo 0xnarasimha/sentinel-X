@@ -54,17 +54,17 @@ sentinelx verify-log --path /tmp/sx-demo/log.jsonl && sudo make lab-down
 
 ---
 
-## Performance & Reliability Targets (Being Measured)
+## Performance & Reliability (Targets + Measured)
 
-The figures below from our design deck are **engineering targets, being measured** by the `bench/` suite (not claimed as final production results until benchmark runs complete):
+The deck figures below are **engineering targets**, now shown against a first **native-Linux namespace-lab measurement** (Oct 25 2026; CachyOS, Python 3.14.8; one session of 10 real `arpspoof` cycles against a live daemon, benign ping traffic runs, CPU sampling `psutil`, and a 1-byte tamper check). The ≥95 %-over-50-runs campaign is still outstanding — targets are not yet production claims.
 
-| Metric | Deck Target (Being Measured) | Evaluation Method |
-|---|---|---|
-| Detection + Verified Heal Latency | **< 500 ms** *(target)* | First spoofed ARP timestamp `t0` to verified `heal` entry timestamp |
-| Active MITM Mitigation Rate | **≥ 95 % over 50 runs** *(target)* | Neighbour entry stays `PERMANENT` with legitimate gateway MAC under `arpspoof -r` |
-| False Positives (Simulated Packet Scenarios) | **0 FP over 50+ scenarios** *(target)* | Simulated packet scenarios covering DHCP renew, RFC 5227 probes, GARP, VRRP/HSRP |
-| Daemon CPU Overhead | **< 5 % of one core** *(target)* | `psutil` sampling across idle, 50 pps benign ARP, and active `arpspoof` |
-| Tamper-Evident Audit Log | **SHA-256 hash chain** | Verified by `sentinelx verify-log` and `tests/test_chainlog.py` |
+| Metric | Deck Target (Being Measured) | Measured (Oct 25 2026 namespace lab) | Evaluation Method |
+|---|---|---|---|
+| Detection + Verified Heal Latency | **< 500 ms** *(target)* | **min 1.75 ms · median 2.32 ms · max 2.62 ms** — first verified heal per incident, n=10/10 attacks, all under target (repeat heals inside the heal-cooldown suppression window are excluded by design) | First spoofed ARP timestamp `t0` to verified `heal` entry timestamp |
+| Active MITM Mitigation Rate | **≥ 95 % over 50 runs** *(target)* | **10/10 cycles** — neighbour entry stayed `PERMANENT` with legitimate gateway MAC between and after every cycle (50-run campaign outstanding) | Neighbour entry stays `PERMANENT` with legitimate gateway MAC under `arpspoof -r` |
+| False Positives (Simulated Packet Scenarios) | **0 FP over 50+ scenarios** *(target)* | **0 FP** — benign ICMP/ARP lab traffic raised zero `detect` events; simulated packet scenarios stay green (`tests/test_scenarios_fp.py`) | Simulated packet scenarios covering DHCP renew, RFC 5227 probes, GARP, VRRP/HSRP |
+| Daemon CPU Overhead | **< 5 % of one core** *(target)* | **avg 0.60 % of one core under live `arpspoof`** (brief single-interval peak 5.00 %) | `psutil` sampling across idle, 50 pps benign ARP, and active `arpspoof` |
+| Tamper-Evident Audit Log | **SHA-256 hash chain** | **verified 57 entries (`OK`); tampered copy rejected (`bad_idx=1 reason=bad_hash`, exit 1)** | Verified by `sentinelx verify-log` and `tests/test_chainlog.py` |
 
 ---
 
