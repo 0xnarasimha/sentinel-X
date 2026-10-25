@@ -1,0 +1,6 @@
+{
+  "name": "Sentinel-X — ARP Poisoning MITM Defense & Hash-Chained Audit Console",
+  "description": "Linux ARP-poisoning MITM detection, TOFU neighbour pinning, bidirectional router cache healing, and SHA-256 hash-chained tamper-evident audit dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

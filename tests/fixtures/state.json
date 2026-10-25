@@ -1,0 +1,8 @@
+{
+  "v-victim|wired|10.77.0.1": {
+    "allowed_macs": [],
+    "gw_mac": "02:77:00:00:00:01",
+    "learned_at": 1761369120.942,
+    "virtual_gateway": false
+  }
+}

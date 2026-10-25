@@ -1,0 +1,21 @@
+[core]
+iface = "auto"                 # "auto" = default-route interface
+state_dir = "/var/lib/sentinelx"
+pin_mode = "always"            # always | on_detect
+unpin_on_exit = true
+dry_run = false
+
+[detect]
+heal_cooldown_ms = 1000
+incident_idle_s = 10
+tofu_probes = 5
+tofu_window_ms = 1000
+queue_max = 1000
+
+[whitelist]
+allowed_macs = []              # extra legitimate gateway MACs
+
+[llm]
+enabled = false
+provider = "ollama"            # ollama | anthropic
+model = ""                     # set per provider

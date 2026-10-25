@@ -1,0 +1,15 @@
+{
+  "chain_head": "5c2cc3a0769c8a9bb432a3fde5857453c74fc032320dc9a451a14e32d79f900f",
+  "dropped_events": 0,
+  "gw_ip": "10.77.0.1",
+  "gw_mac": "02:77:00:00:00:01",
+  "iface": "v-victim",
+  "incidents_total": 1,
+  "last_incident_ts": 1761369124.29647,
+  "network_id": "wired",
+  "pin_mode": "always",
+  "pinned": true,
+  "state": "monitor",
+  "under_attack": false,
+  "updated": "2026-10-25T05:22:51.506569Z"
+}
