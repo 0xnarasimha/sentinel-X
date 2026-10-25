@@ -1,0 +1,8 @@
+.vercel
+node_modules
+dist
+.aistudio
+.env
+.env.*
+*.log
+.DS_Store

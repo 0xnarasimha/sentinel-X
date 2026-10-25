@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sentinel-X: Interactive 3D Teaching Simulation</title>
+    <meta name="description" content="Interactive 3D teaching simulation of ARP poisoning MITM attack, Sentinel-X host-level defense and auto-healing, and tamper-evident hash chaining." />
+    <link rel="stylesheet" href="./styles.css?v=6" />
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three.module.js",
+        "three/addons/": "./vendor/"
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <!-- Three.js 3D WebGL Canvas Container -->
+    <div id="scene-canvas-container" class="canvas-mount"></div>
+
+    <!-- UI Overlay (Accessible Semantic DOM Elements) -->
+    <div id="ui-container" class="ui-layer"></div>
+
+    <!-- Application Script Entrypoint -->
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
