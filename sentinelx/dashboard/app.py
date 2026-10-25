@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse
 
-from sentinelx.chainlog import GENESIS_PREV, ChainLog
+from sentinelx.chainlog import GENESIS_PREV, ChainLog, canonical_json
 
 
 def format_banner(status: dict[str, Any], log_entries: list[dict[str, Any]] | None = None) -> dict[str, str]:
@@ -142,6 +142,18 @@ def read_dashboard_snapshot(state_dir: Path) -> dict[str, Any]:
                         {
                             **obj,
                             "sentence": format_entry_sentence(obj),
+                            # Exact canonical payload string (§6.6): the bytes that were
+                            # hashed as (prev + payload) at write time. Shipping it makes
+                            # browser-side re-verification byte-exact (JS floats can
+                            # serialize differently from Python reprs).
+                            "payload": canonical_json(
+                                {
+                                    "idx": obj["idx"],
+                                    "ts": obj["ts"],
+                                    "type": obj["type"],
+                                    "data": obj["data"],
+                                }
+                            ),
                         }
                     )
             except json.JSONDecodeError:

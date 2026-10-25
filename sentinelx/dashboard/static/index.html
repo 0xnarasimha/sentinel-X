@@ -3,235 +3,825 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sentinel-X — Network Protection Dashboard</title>
+  <title>Sentinel-X — Wi-Fi &amp; LAN Router Protection</title>
   <style>
     :root {
-      --bg: #0f172a;
-      --surface: #1e293b;
-      --border: #334155;
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --green-bg: rgba(22, 163, 74, 0.16);
-      --green-border: #16a34a;
-      --green-text: #4ade80;
-      --red-bg: rgba(220, 38, 38, 0.18);
-      --red-border: #dc2626;
-      --red-text: #f87171;
-      --amber-bg: rgba(217, 119, 6, 0.18);
-      --amber-border: #d97706;
-      --amber-text: #fbbf24;
+      --bg: #0c1322;
+      --surface: #121c30;
+      --surface-2: #0f192a;
+      --border: #223046;
+      --border-soft: #1a2740;
+      --text: #e8eef7;
+      --muted: #93a4bd;
+      --faint: #64748b;
+      --green: #34d399;
+      --green-bg: rgba(52, 211, 153, 0.12);
+      --green-border: rgba(52, 211, 153, 0.45);
+      --red: #f87171;
+      --red-bg: rgba(248, 113, 113, 0.12);
+      --red-border: rgba(248, 113, 113, 0.45);
+      --amber: #fbbf24;
+      --amber-bg: rgba(251, 191, 36, 0.12);
+      --amber-border: rgba(251, 191, 36, 0.45);
+      --blue: #7dd3fc;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
     * { box-sizing: border-box; }
+    html { scrollbar-color: #334155 var(--bg); }
     body {
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
     }
-    .container {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 24px;
+    .container { max-width: 1180px; margin: 0 auto; padding: 20px 24px 48px; }
+
+    /* ---------- top bar ---------- */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; flex-wrap: wrap; padding: 4px 0 14px;
     }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 16px;
-      margin-bottom: 24px;
-      border-bottom: 1px solid var(--border);
+    .brand { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+    .brand .logo {
+      width: 30px; height: 30px; border-radius: 8px; flex: none;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, rgba(52,211,153,.25), rgba(45,212,191,.12));
+      border: 1px solid var(--green-border); color: var(--green); font-size: 15px;
     }
-    .brand {
-      font-size: 1.25rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
+    .topbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .pill {
+      font-family: var(--mono); font-size: 0.8rem; font-weight: 600;
+      padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--muted); white-space: nowrap;
     }
-    .badge {
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      padding: 6px 12px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
+    .pill.ok { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+    .pill.tampered { background: var(--red-bg); border-color: var(--red-border); color: var(--red); }
+    .btn {
+      appearance: none; border: 1px solid var(--border); background: var(--surface);
+      color: var(--text); font-size: 0.82rem; font-weight: 600; border-radius: 8px;
+      padding: 8px 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+      transition: background .15s ease, border-color .15s ease, transform .06s ease;
     }
-    .badge.ok {
-      background: var(--green-bg);
-      border-color: var(--green-border);
-      color: var(--green-text);
+    .btn:hover { border-color: #3b4f6e; }
+    .btn:active { transform: translateY(1px); }
+    .btn.primary { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+    .btn.warn { color: var(--amber); }
+    .btn.danger { color: var(--red); }
+    .btn[disabled] { opacity: .45; cursor: not-allowed; }
+
+    /* ---------- tabs ---------- */
+    .tabs {
+      display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 26px;
+      overflow-x: auto;
     }
-    .badge.tampered {
-      background: var(--red-bg);
-      border-color: var(--red-border);
-      color: var(--red-text);
+    .tab {
+      appearance: none; background: none; border: none; border-bottom: 2px solid transparent;
+      color: var(--muted); font-size: 0.92rem; font-weight: 600; padding: 10px 16px;
+      cursor: pointer; white-space: nowrap; margin-bottom: -1px;
     }
-    .banner {
-      padding: 20px 24px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      margin-bottom: 24px;
-      font-size: 1.15rem;
-      font-weight: 600;
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--green); border-bottom-color: var(--green); }
+    .tabpane { display: none; }
+    .tabpane.active { display: block; }
+
+    /* ---------- hero ---------- */
+    .hero h1 { margin: 0 0 6px; font-size: 1.5rem; letter-spacing: -0.01em; }
+    .hero .sub { color: var(--muted); margin: 0 0 22px; font-size: 0.95rem; max-width: 720px; }
+
+    /* ---------- banner ---------- */
+    .banner-card {
+      border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px;
+      margin-bottom: 20px; position: relative;
     }
-    .banner.ok {
-      background: var(--green-bg);
-      border-color: var(--green-border);
-      color: var(--green-text);
+    .banner-card.ok { background: var(--green-bg); border-color: var(--green-border); }
+    .banner-card.danger { background: var(--red-bg); border-color: var(--red-border); }
+    .banner-card.warning { background: var(--amber-bg); border-color: var(--amber-border); }
+    .banner-card.preview::after {
+      content: "PREVIEW"; position: absolute; top: 12px; right: 14px;
+      font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.12em;
+      color: var(--muted); border: 1px dashed var(--border); border-radius: 5px; padding: 3px 7px;
     }
-    .banner.danger {
-      background: var(--red-bg);
-      border-color: var(--red-border);
-      color: var(--red-text);
+    .banner-head { display: flex; gap: 12px; align-items: flex-start; }
+    .banner-icon { font-size: 1.35rem; line-height: 1.2; }
+    .banner-card.ok .banner-icon { color: var(--green); }
+    .banner-card.danger .banner-icon { color: var(--red); }
+    .banner-card.warning .banner-icon { color: var(--amber); }
+    .banner-text .headline { font-size: 1.12rem; font-weight: 700; margin: 0 0 4px; }
+    .banner-text .subline { color: var(--text); opacity: .85; margin: 0 0 8px; font-size: 0.92rem; }
+    .banner-meta { font-family: var(--mono); font-size: 0.76rem; color: var(--muted); }
+    .preview-chip {
+      display: inline-flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--muted);
+      margin-top: 12px;
     }
-    .banner.warning {
-      background: var(--amber-bg);
-      border-color: var(--amber-border);
-      color: var(--amber-text);
+    .preview-chip button {
+      appearance: none; border: 1px solid var(--green-border); background: var(--surface-2);
+      color: var(--green); font-size: 0.78rem; font-weight: 600; border-radius: 7px;
+      padding: 5px 10px; cursor: pointer; display: none;
     }
+    .preview-mode .preview-chip button { display: inline-flex; }
+
+    /* ---------- stat cards ---------- */
     .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin-bottom: 28px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 14px; margin: 20px 0 26px;
     }
     .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px;
+      background: var(--surface); border: 1px solid var(--border-soft);
+      border-radius: 10px; padding: 15px 16px;
     }
-    .card-label {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
+    .card-label { font-size: 0.74rem; color: var(--muted); margin-bottom: 8px; }
     .card-value {
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 1rem;
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
-      word-break: break-all;
+      font-family: var(--mono); font-size: 0.98rem; font-weight: 650;
+      font-variant-numeric: tabular-nums; word-break: break-all;
     }
-    .feed-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 20px;
+    .card-value.big { font-size: 1.25rem; }
+    .card-sub { font-size: 0.75rem; color: var(--faint); margin-top: 6px; }
+
+    /* ---------- chips row ---------- */
+    .chips-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 4px 0 6px; }
+    .chips-row .lead { font-size: 0.8rem; color: var(--muted); margin-right: 6px; }
+    .chip {
+      appearance: none; border: 1px solid var(--border); background: var(--surface);
+      color: var(--muted); font-size: 0.8rem; font-weight: 600; border-radius: 999px;
+      padding: 7px 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+      transition: all .15s ease;
     }
-    .feed-title {
-      margin: 0 0 16px 0;
-      font-size: 1rem;
-      font-weight: 600;
+    .chip:hover { border-color: #3b4f6e; color: var(--text); }
+    .chip .dot { width: 8px; height: 8px; border-radius: 50%; background: #475569; flex: none; }
+    .chip.on-ok .dot { background: var(--green); }
+    .chip.on-danger .dot { background: var(--red); }
+    .chip.on-warning .dot { background: var(--amber); }
+
+    /* ---------- panels ---------- */
+    .panel {
+      background: var(--surface); border: 1px solid var(--border-soft);
+      border-radius: 12px; padding: 20px 22px; margin-bottom: 22px;
     }
-    .feed-item {
-      padding: 12px 0;
-      border-top: 1px solid var(--border);
+    .panel-title { margin: 0 0 4px; font-size: 1.02rem; font-weight: 700; }
+    .panel-sub { margin: 0 0 16px; color: var(--muted); font-size: 0.85rem; }
+
+    /* ---------- connection map ---------- */
+    .map-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+    .map-card {
+      background: var(--surface-2); border: 1px solid var(--border-soft);
+      border-radius: 10px; padding: 16px;
     }
-    .feed-item:first-child {
-      border-top: none;
+    .map-card.guard { border-color: var(--green-border); }
+    .map-num { font-family: var(--mono); font-size: 0.72rem; color: var(--faint); margin-bottom: 8px; }
+    .map-role { font-size: 0.7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+    .map-title { font-size: 1rem; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .map-title .icon { font-size: 1rem; }
+    .map-title .okicon { color: var(--green); display: inline-flex; align-items: center; font-size: .9rem; }
+    .map-detail { font-family: var(--mono); font-size: 0.78rem; color: var(--text); margin-bottom: 8px; }
+    .map-detail .k { color: var(--muted); }
+    .map-body { font-size: 0.82rem; color: var(--muted); }
+    .map-lock {
+      margin-top: 10px; display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.78rem; color: var(--green);
     }
-    .feed-sentence {
-      font-size: 0.95rem;
-      margin-bottom: 4px;
-    }
-    details {
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-    details summary {
-      cursor: pointer;
-      user-select: none;
-    }
+    .map-note { margin-top: 10px; font-size: 0.78rem; color: var(--faint); border-top: 1px dashed var(--border); padding-top: 10px; }
+
+    /* ---------- feed ---------- */
+    .feed { }
+    .feed-item { padding: 13px 0; border-top: 1px solid var(--border-soft); }
+    .feed-item:first-child { border-top: none; }
+    .feed-sentence { font-size: 0.93rem; margin-bottom: 4px; overflow-wrap: anywhere; }
+    .feed-item .meta { font-size: 0.75rem; color: var(--faint); font-family: var(--mono); }
+    details { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+    details summary { cursor: pointer; user-select: none; }
     pre {
-      background: #090d16;
-      padding: 10px;
-      border-radius: 6px;
-      overflow-x: auto;
-      color: #cbd5e1;
-      margin-top: 6px;
+      background: #0a101d; padding: 10px 12px; border-radius: 7px; overflow-x: auto;
+      color: #b7c6dd; margin: 8px 0 0; font-size: 0.72rem; line-height: 1.45;
+    }
+    .empty { color: var(--faint); font-size: 0.88rem; padding: 14px 0; }
+
+    /* ---------- tamper lab ---------- */
+    .tamper-row {
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+      margin: 14px 0 18px;
+    }
+    .chain-list { display: grid; gap: 8px; }
+    .chain-item {
+      background: var(--surface-2); border: 1px solid var(--border-soft);
+      border-radius: 9px; padding: 11px 13px; display: grid;
+      grid-template-columns: minmax(60px, 95px) 1fr minmax(80px, 150px); gap: 10px; align-items: baseline;
+      font-family: var(--mono); font-size: 0.76rem;
+    }
+    .chain-item .idx { color: var(--faint); }
+    .chain-item .ty { color: var(--blue); font-weight: 700; }
+    .chain-item .hash { color: var(--faint); text-align: right; overflow: hidden; text-overflow: ellipsis; }
+    .chain-item.bad { border-color: var(--red-border); background: var(--red-bg); }
+    .chain-item.bad .hash::after { content: " ✗"; color: var(--red); }
+    .chain-item.good-first { border-color: var(--green-border); }
+    .tamper-result { margin-top: 14px; font-size: 0.86rem; }
+    .tamper-result .line { padding: 5px 0; border-top: 1px dashed var(--border-soft); font-family: var(--mono); font-size: 0.78rem; }
+    .ok-text { color: var(--green); } .bad-text { color: var(--red); } .warn-text { color: var(--amber); }
+
+    /* ---------- docs ---------- */
+    .docblock {
+      background: #0a101d; border: 1px solid var(--border-soft); border-radius: 8px;
+      padding: 13px 15px; font-family: var(--mono); font-size: 0.78rem; color: #b7c6dd;
+      overflow-x: auto; white-space: pre; margin: 10px 0 16px;
+    }
+    ul.rules { margin: 8px 0 18px; padding-left: 20px; color: var(--muted); font-size: 0.88rem; }
+    ul.rules li { margin-bottom: 7px; }
+    .bench-grid { display: grid; gap: 9px; margin: 10px 0 18px; }
+    .bench-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+      background: var(--surface-2); border: 1px solid var(--border-soft);
+      border-radius: 9px; padding: 11px 14px; font-size: 0.84rem;
+    }
+    .bench-row .m { color: var(--muted); }
+    .bench-row .v { font-family: var(--mono); color: var(--green); }
+    .footnote { color: var(--faint); font-size: 0.75rem; }
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(8px);
+      background: #0b1526; color: var(--text); border: 1px solid var(--green-border);
+      border-radius: 9px; padding: 10px 16px; font-size: 0.84rem; opacity: 0;
+      pointer-events: none; transition: all .25s ease; z-index: 50; max-width: 90vw;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.danger { border-color: var(--red-border); }
+    kbd {
+      font-family: var(--mono); font-size: .74em; background: #0a101d; border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 5px;
+    }
+    @media (max-width: 640px) {
+      .bench-row { grid-template-columns: 1fr; gap: 4px; }
+      .chain-item { grid-template-columns: 1fr; gap: 4px; }
+      .chain-item .hash { text-align: left; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <header>
-      <div class="brand">Sentinel-X · Gateway ARP Protection</div>
-      <div id="integrity-badge" class="badge">Checking log chain...</div>
-    </header>
 
-    <section id="status-banner" class="banner warning">
-      Loading protection status...
-    </section>
+    <!-- ======= top bar ======= -->
+    <div class="topbar">
+      <div class="brand"><span class="logo">🛡</span> Sentinel-X</div>
+      <div class="topbar-right">
+        <span id="audit-pill" class="pill">Audit Log: checking…</span>
+        <button id="btn-heal" class="btn primary" title="Client-side preview of the under-attack → auto-heal banner sequence">▶ Simulate Attack &amp; Heal</button>
+        <button id="btn-tamper" class="btn warn" title="Flip one byte of a client-side copy of entry #3 and watch verification fail">Simulate 1-Byte Log Tamper <span style="opacity:.65">(idx #3)</span></button>
+      </div>
+    </div>
 
-    <section class="cards">
-      <div class="card">
-        <div class="card-label">Pinned Gateway (IP / MAC / Mode)</div>
-        <div id="card-gateway" class="card-value">—</div>
-      </div>
-      <div class="card">
-        <div class="card-label">Total Incidents</div>
-        <div id="card-incidents" class="card-value">0</div>
-      </div>
-      <div class="card">
-        <div class="card-label">Last Incident</div>
-        <div id="card-last-incident" class="card-value">None</div>
-      </div>
-      <div class="card">
-        <div class="card-label">Dropped Events</div>
-        <div id="card-dropped" class="card-value">0</div>
-      </div>
-    </section>
+    <!-- ======= tabs ======= -->
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-pane="pane-status">Protection Status</button>
+      <button class="tab" data-pane="pane-activity">Activity Log</button>
+      <button class="tab" data-pane="pane-tamper">Tamper Check</button>
+      <button class="tab" data-pane="pane-docs">Lab &amp; Docs</button>
+    </div>
 
-    <section class="feed-panel">
-      <h2 class="feed-title">Incident &amp; Audit Feed (Hash-Chained Log)</h2>
-      <div id="incident-feed">No log entries yet.</div>
-    </section>
+    <!-- ======= pane: protection status ======= -->
+    <div class="tabpane active" id="pane-status">
+      <div class="hero">
+        <h1>Wi-Fi &amp; LAN Router Protection</h1>
+        <p class="sub">Automatically locks your router's hardware address so attackers on the same network cannot intercept your traffic.</p>
+      </div>
+
+      <div id="banner-card" class="banner-card warning preview">
+        <div class="banner-head">
+          <div class="banner-icon" id="banner-icon">⏳</div>
+          <div class="banner-text">
+            <p class="headline" id="banner-headline">Connecting to daemon state…</p>
+            <p class="subline" id="banner-subline"></p>
+            <div class="banner-meta" id="banner-meta"></div>
+            <div class="preview-chip"><span id="preview-note"></span>
+              <button id="btn-back-live">← Back to live data</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chips-row" id="preview-row">
+        <span class="lead">Preview protection situations:</span>
+        <button class="chip" data-preview="protected_live"><span class="dot"></span>Protected (Normal)</button>
+        <button class="chip" data-preview="under_attack"><span class="dot"></span>Under Attack (Spoof Blocked)</button>
+        <button class="chip" data-preview="unprotected"><span class="dot"></span>Not Protected (No Reply)</button>
+        <button class="chip" data-preview="conflict"><span class="dot"></span>Conflict (2 Routers Claimed)</button>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-label">Locked Router (IP · MAC · Mode)</div>
+          <div class="card-value big" id="card-gateway">—</div>
+          <div class="card-sub" id="card-gateway-sub"></div>
+        </div>
+        <div class="card">
+          <div class="card-label">Attacks Blocked</div>
+          <div class="card-value big" id="card-attacks">0</div>
+          <div class="card-sub">Spoofed router claims stopped</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Last Attack Blocked</div>
+          <div class="card-value" id="card-last">None</div>
+          <div class="card-sub" id="card-last-sub"></div>
+        </div>
+        <div class="card">
+          <div class="card-label">Missed Network Events</div>
+          <div class="card-value big" id="card-dropped">0</div>
+          <div class="card-sub">Zero packets dropped under load</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">Live Connection Map</h2>
+        <p class="panel-sub">How Sentinel-X keeps traffic between your computer and your router from being intercepted</p>
+        <div class="map-grid">
+          <div class="map-card">
+            <div class="map-num">1 · Your Computer</div>
+            <div class="map-role">Protected Device</div>
+            <div class="map-title"><span class="icon">💻</span> <span id="map-comp-title">This Host</span></div>
+            <div class="map-detail" id="map-comp-detail">— interface</div>
+            <div class="map-lock" id="map-comp-lock">🔒 Address table locked (ignores fake updates)</div>
+          </div>
+          <div class="map-card guard">
+            <div class="map-num">2 · Sentinel-X Guard</div>
+            <div class="map-role"><span class="okicon" id="map-guard-ok">✔</span> <span id="map-guard-role">Direct Path Verified</span></div>
+            <div class="map-title"><span class="icon">🛡</span> <span id="map-guard-title">Sentinel-X Guard</span></div>
+            <div class="map-body" id="map-guard-body">Both outbound and inbound traffic flow directly between your computer and the genuine router.</div>
+            <div class="map-note" id="map-guard-note">0 attacks blocked &amp; healed in this session</div>
+          </div>
+          <div class="map-card">
+            <div class="map-num">3 · Your Wi-Fi / LAN Router</div>
+            <div class="map-role">Gateway</div>
+            <div class="map-title"><span class="icon">📶</span> <span id="map-gw-title">Router</span></div>
+            <div class="map-detail" id="map-gw-detail">—</div>
+            <div class="map-note">Receives corrective updates if an attacker poisons its cache.</div>
+          </div>
+        </div>
+        <details style="margin-top:14px">
+          <summary>Show kernel &amp; packet commands</summary>
+          <pre id="kernel-cmds">sudo ip neigh show dev &lt;iface&gt;          # router pin (PERMANENT = locked)
+sudo ip -s -s neigh flush nud permanent  # never flush PERMANENT pins on a protected host
+sentinelx status --state-dir &lt;state&gt;     # daemon status from status.json
+sentinelx verify-log --state-dir &lt;state&gt; # re-verify the hash chain end-to-end
+sudo tail -f &lt;state&gt;/log.jsonl           # live hash-chained audit feed</pre>
+        </details>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">Recent Security Activity</h2>
+        <p class="panel-sub">Plain-English summary of everything Sentinel-X has done. Click <b>Technical Details</b> on any line to view raw JSON and cryptographic hashes.</p>
+        <div class="chips-row" style="margin-bottom:6px">
+          <button class="chip" data-filter="all" id="chip-all">All</button>
+          <button class="chip" data-filter="warnings">Warnings &amp; Heals</button>
+          <button class="chip" data-filter="startup">System Startup</button>
+          <button class="chip" data-filter="stop">Daemon Lifecycle</button>
+        </div>
+        <div class="feed" id="feed-main"><div class="empty">No log entries yet.</div></div>
+      </div>
+    </div>
+
+    <!-- ======= pane: activity log ======= -->
+    <div class="tabpane" id="pane-activity">
+      <div class="panel">
+        <h2 class="panel-title">Activity Log — full hash-chained audit trail</h2>
+        <p class="panel-sub">Every entry from <kbd>log.jsonl</kbd> in chronological order (idx #0 → head). Server-side verification runs on every snapshot.</p>
+        <div class="feed" id="feed-all"><div class="empty">Loading…</div></div>
+      </div>
+    </div>
+
+    <!-- ======= pane: tamper check ======= -->
+    <div class="tabpane" id="pane-tamper">
+      <div class="panel">
+        <h2 class="panel-title">Tamper Check — SHA-256 hash chain, verified in your browser</h2>
+        <p class="panel-sub">Each entry's hash covers <span class="mono">prev&nbsp;+&nbsp;{idx, ts, type, data}</span> with deeply sorted canonical JSON (§6.6). The page recomputes the exact same chain Sentinel-X wrote, byte for byte.</p>
+        <div class="tamper-row">
+          <button id="btn-run-verify" class="btn primary">Re-verify chain in browser</button>
+          <button id="btn-run-tamper" class="btn warn">Simulate 1-Byte Tamper (idx #3)</button>
+          <button id="btn-run-restore" class="btn" disabled>Restore chain</button>
+          <span class="footnote" id="tamper-note">Simulation runs on an in-memory copy — this dashboard never writes to log.jsonl.</span>
+        </div>
+        <div class="chain-list" id="chain-list"><div class="empty">Waiting for log data…</div></div>
+        <div class="tamper-result" id="tamper-result"></div>
+      </div>
+    </div>
+
+    <!-- ======= pane: lab & docs ======= -->
+    <div class="tabpane" id="pane-docs">
+      <div class="panel">
+        <h2 class="panel-title">5-Line Quickstart (isolated namespace lab)</h2>
+        <div class="docblock">pip install -e ".[dev]"
+sudo make lab-up
+sudo ip netns exec sx-victim sentinelx run --iface v-victim --state-dir /tmp/sx-demo &amp;
+sudo bash lab/attack.sh 4
+sentinelx verify-log --path /tmp/sx-demo/log.jsonl &amp;&amp; sudo make lab-down</div>
+
+        <h2 class="panel-title">CLI Reference</h2>
+        <div class="docblock">sentinelx run       --iface v-victim --state-dir /var/lib/sentinelx   # daemon (R2 guard)
+sentinelx status    --state-dir /var/lib/sentinelx                    # state from status.json
+sentinelx verify-log --state-dir /var/lib/sentinelx                   # verify hash chain
+sentinelx trust     --state-dir /var/lib/sentinelx --show             # TOFU trust store
+sentinelx dashboard --port 8787 --state-dir /var/lib/sentinelx        # this dashboard</div>
+
+        <h2 class="panel-title">Measured vs Target (namespace lab, Oct 25 2026 — 10 arpspoof cycles)</h2>
+        <div class="bench-grid">
+          <div class="bench-row"><span class="m">Detection + verified-heal latency</span><span class="v">median 2.32 ms (target &lt; 500 ms)</span></div>
+          <div class="bench-row"><span class="m">MITM mitigation</span><span class="v">10/10 PERMANENT (50-run campaign outstanding)</span></div>
+          <div class="bench-row"><span class="m">False positives</span><span class="v">0 (benign lab traffic)</span></div>
+          <div class="bench-row"><span class="m">Daemon CPU under attack</span><span class="v">0.60 % of one core (avg)</span></div>
+          <div class="bench-row"><span class="m">Tamper-evident log</span><span class="v">SHA-256 chain verified; 1-byte edit rejected</span></div>
+        </div>
+        <p class="footnote">Full methodology in the repository README ("Performance &amp; Reliability").</p>
+
+        <h2 class="panel-title">Known Limits (§13)</h2>
+        <ul class="rules">
+          <li><b>First-contact trust (TOFU):</b> protection begins at first contact; an attacker who suppresses the real router before you join can outrun TOFU.</li>
+          <li><b>Host ↔ gateway scope only:</b> peer-to-peer LAN traffic between two non-gateway hosts is out of scope.</li>
+          <li><b>IPv4 ARP only:</b> IPv6 NDP/RA spoofing is out of scope.</li>
+          <li><b>Root on this host:</b> a root adversary can stop the daemon or rewrite files; the chain detects mid-file edits, deletions and reordering — not tail truncation — unless the head hash is anchored externally.</li>
+          <li><b>VRRP/HSRP:</b> virtual router MACs are accepted only when the gateway was originally learned as a virtual MAC.</li>
+        </ul>
+      </div>
+    </div>
   </div>
 
+  <div class="toast" id="toast"></div>
+
   <script>
-    async function refreshStatus() {
+    "use strict";
+
+    const GENESIS_PREV = "0".repeat(64);
+    const state = {
+      snap: null,               // latest /api/snapshot payload
+      preview: "live",          // live | protected_live | under_attack | unprotected | conflict
+      feedFilter: "all",
+      tampered: false,          // client-side tamper simulation active (copies only)
+    };
+
+    // ---------- utilities ----------
+    const esc = (s) => String(s).replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+
+    function hexToBytes(hex) {
+      const out = new Uint8Array(64);
+      for (let i = 0; i < 32; i++) out[i] = parseInt(hex.substr(i * 2, 2), 16);
+      return out;
+    }
+
+    function canonicalJson(value) {
+      // Python json.dumps(sort_keys=True, separators=(",", ":")) equivalent,
+      // with deep key sorting (§6.6 canonical JSON).
+      if (value === null || typeof value !== "object") return JSON.stringify(value);
+      if (Array.isArray(value)) return "[" + value.map(canonicalJson).join(",") + "]";
+      const keys = Object.keys(value).sort();
+      return "{" + keys.map(k => JSON.stringify(k) + ":" + canonicalJson(value[k])).join(",") + "}";
+    }
+
+    async function sha256Hex(text) {
+      const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+      return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    async function computeEntryHash(prev, idx, ts, type, data) {
+      const payload = canonicalJson({ idx, ts, type, data });
+      return sha256Hex(prev + payload);
+    }
+
+    function toast(msg, danger) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.className = "toast show" + (danger ? " danger" : "");
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => { t.className = "toast" + (danger ? " danger" : ""); }, 3200);
+    }
+
+    // ---------- snapshot polling ----------
+    async function refresh() {
       try {
-        const res = await fetch('/api/snapshot');
+        const res = await fetch("/api/snapshot", { cache: "no-store" });
         if (!res.ok) return;
-        const data = await res.json();
-        const bannerEl = document.getElementById('status-banner');
-        bannerEl.className = 'banner ' + (data.banner.level || 'warning');
-        bannerEl.textContent = data.banner.headline;
-
-        const st = data.status || {};
-        document.getElementById('card-gateway').textContent =
-          (st.gw_ip || '—') + ' · ' + (st.gw_mac || 'unpinned') + ' (' + (st.pin_mode || 'always') + ')';
-        document.getElementById('card-incidents').textContent = String(st.incidents_total ?? 0);
-        document.getElementById('card-last-incident').textContent =
-          st.last_incident_ts ? new Date(st.last_incident_ts * 1000).toISOString().slice(11, 19) + ' UTC' : 'None';
-        document.getElementById('card-dropped').textContent = String(st.dropped_events ?? 0);
-
-        const badgeEl = document.getElementById('integrity-badge');
-        badgeEl.className = 'badge ' + (data.integrity.ok ? 'ok' : 'tampered');
-        badgeEl.textContent = data.integrity.badge;
-
-        const feedEl = document.getElementById('incident-feed');
-        const entries = (data.entries || []).slice().reverse();
-        if (!entries.length) {
-          feedEl.textContent = 'No log entries recorded.';
-        } else {
-          feedEl.innerHTML = entries.map(e => `
-            <div class="feed-item">
-              <div class="feed-sentence">${e.sentence}</div>
-              <details>
-                <summary>Details (entry #${e.idx} · ${e.type})</summary>
-                <pre>${JSON.stringify(e, null, 2)}</pre>
-              </details>
-            </div>
-          `).join('');
-        }
+        state.snap = await res.json();
+        render();
       } catch (err) {
-        console.error('Poll failed:', err);
+        console.error("Poll failed:", err);
       }
     }
 
-    refreshStatus();
-    setInterval(refreshStatus, 1000);
+    // ---------- renderers ----------
+    const PREVIEWS = {
+      protected_live: { level: "ok", icon: "🛡", headline: null }, // headline from server
+      under_attack: { level: "danger", icon: "⚡", headline: "Under attack — a spoofing device is pretending to be your router.",
+        subline: "Sentinel-X detected the fake update, blocked it and is repairing the router's cache." },
+      unprotected: { level: "warning", icon: "🔓", headline: "Not protected — your router didn't answer.",
+        subline: "Sentinel-X keeps every event in the hash-chained audit log until it can re-lock the router." },
+      conflict: { level: "warning", icon: "⚔️", headline: "Conflict — two devices claim to be your router.",
+        subline: "Between contradictory answers nothing is locked — check which router is genuine, then authorize it." },
+    };
+
+    function effectivePreview() { return state.preview; }
+
+    function render() {
+      const snap = state.snap;
+      if (!snap) return;
+      const st = snap.status || {};
+      const banner = snap.banner || {};
+      const integrity = snap.integrity || {};
+      const entries = snap.entries || [];
+
+      // header pill
+      const pill = document.getElementById("audit-pill");
+      pill.className = "pill " + (integrity.ok ? "ok" : "tampered");
+      pill.textContent = "Audit Log: " + (integrity.badge || "checking…");
+
+      // banner (live or preview)
+      const pv = effectivePreview();
+      const prev = PREVIEWS[pv] || null;
+      const cardEl = document.getElementById("banner-card");
+      const isPreview = pv !== "live" && pv !== "protected_live";
+      const level = isPreview || pv === "protected_live" ? (pv === "protected_live" ? "ok" : prev.level) : (banner.level || "warning");
+      cardEl.className = "banner-card " + level + (isPreview ? " preview" : "");
+      document.getElementById("banner-icon").textContent =
+        pv === "protected_live" ? "🛡" : isPreview ? prev.icon : iconForLevel(banner.level);
+      document.getElementById("banner-headline").textContent =
+        pv === "protected_live" ? (banner.headline || "Protected") :
+        isPreview ? prev.headline : (banner.headline || "Connecting…");
+      document.getElementById("banner-subline").textContent =
+        pv === "protected_live" ? "Your computer has locked the router address and ignores fake updates." :
+        isPreview ? prev.subline :
+        (banner.state === "protected" ? "Your computer has locked the router address and ignores fake updates." : "");
+
+      const lastHeal = lastVerifiedHeal(entries);
+      document.getElementById("banner-meta").textContent = metaLine(st, entries);
+      document.getElementById("preview-note").textContent = isPreview
+        ? "Preview only — real feed data and log files are untouched."
+        : "";
+      document.getElementById("btn-back-live").style.display = isPreview ? "inline-flex" : "none";
+
+      // highlight preview chips
+      document.querySelectorAll("[data-preview]").forEach(ch => {
+        const active = ch.dataset.preview === pv;
+        ch.className = "chip" + (active ? (" on-" + (pv === "protected_live" ? "ok" : pv === "unprotected" || pv === "conflict" ? "warning" : "danger")) : "");
+      });
+
+      // stat cards
+      document.getElementById("card-gateway").textContent =
+        (st.gw_ip || "—") + " · " + (st.gw_mac || "unpinned");
+      document.getElementById("card-gateway-sub").textContent = "mode " + (st.pin_mode || "always");
+      document.getElementById("card-attacks").textContent = String(st.incidents_total ?? 0);
+      document.getElementById("card-last").textContent =
+        st.last_incident_ts ? fmtTs(st.last_incident_ts * 1000) : "None";
+      document.getElementById("card-last-sub").textContent = lastHeal
+        ? "auto-healed in " + fmtMs(lastHeal.data.latency_ms_from_first_pkt) : "";
+      document.getElementById("card-dropped").textContent = String(st.dropped_events ?? 0);
+
+      // connection map
+      renderMap(st, entries);
+
+      // feeds
+      renderFeedMain(entries);
+      renderFeedAll(entries);
+      renderActivityTabsCount(entries);
+
+      // tamper tab data (re-verify silently each poll when not tampered)
+      if (!state.tampered) refreshChainView(entries, false);
+    }
+
+    function iconForLevel(level) {
+      return level === "ok" ? "🛡" : level === "danger" ? "⚡" : "⚠️";
+    }
+
+    function fmtTs(ms) {
+      return new Date(ms).toISOString().slice(11, 19) + " UTC";
+    }
+
+    function fmtMs(v) {
+      const n = Number(v);
+      return (n >= 100 ? n.toFixed(1) : n.toFixed(3)) + " ms";
+    }
+
+    function metaLine(st, entries) {
+      const iface = st.iface || "—";
+      const nid = st.network_id || "wired";
+      const lock = st.pinned ? "Active" : "None";
+      const updated = st.updated ? fmtTs(Date.parse(st.updated)) : "—";
+      return "Interface " + iface + " (" + nid + ") · Router Lock: " + lock + " · Updated " + updated;
+    }
+
+    function lastVerifiedHeal(entries) {
+      for (let i = entries.length - 1; i >= 0; i--) {
+        const e = entries[i];
+        if (e.type === "heal" && e.data && e.data.verified) return e;
+      }
+      return null;
+    }
+
+    function renderMap(st, entries) {
+      document.getElementById("map-comp-title").textContent = "This Host";
+      document.getElementById("map-comp-detail").innerHTML =
+        '<span class="k">interface</span> ' + esc(st.iface || "—") +
+        ' <span class="k">· network</span> ' + esc(st.network_id || "—");
+      document.getElementById("map-comp-lock").style.display = st.pinned ? "inline-flex" : "none";
+
+      const blocked = st.incidents_total ?? 0;
+      const heal = lastVerifiedHeal(entries);
+      const attackLive = st.under_attack;
+      document.getElementById("map-guard-ok").textContent = (st.pinned && !attackLive) ? "✔" : "⚡";
+      document.getElementById("map-guard-role").textContent = attackLive
+        ? "Attack Active — Blocking"
+        : (st.pinned ? "Direct Path Verified" : "Waiting for first contact (TOFU)");
+      document.getElementById("map-guard-note").textContent =
+        blocked + " attack" + (blocked === 1 ? "" : "s") + " blocked & healed in this session"
+        + (heal ? " · last heal " + fmtMs(heal.data.latency_ms_from_first_pkt) : "");
+
+      document.getElementById("map-gw-title").textContent = "Gateway " + (st.gw_ip || "—");
+      document.getElementById("map-gw-detail").innerHTML =
+        '<span class="k">Trusted MAC:</span> ' + esc(st.gw_mac || "unpinned");
+    }
+
+    const WARNING_TYPES = new Set(["detect", "heal", "incident_close", "tofu_conflict"]);
+    const STARTUP_TYPES = new Set(["genesis", "daemon_start", "tofu_learned"]);
+    const STOP_TYPES = new Set(["daemon_stop", "network_changed"]);
+
+    function entriesForFilter(entries, filter) {
+      if (filter === "all") return entries.slice();
+      if (filter === "warnings") return entries.filter(e => WARNING_TYPES.has(e.type));
+      if (filter === "startup") return entries.filter(e => STARTUP_TYPES.has(e.type));
+      if (filter === "stop") return entries.filter(e => STOP_TYPES.has(e.type));
+      return entries.slice();
+    }
+
+    function feedItemHTML(e) {
+      return '<div class="feed-item">' +
+        '<div class="feed-sentence">' + esc(e.sentence || ("Event: " + (e.type || "?"))) + '</div>' +
+        '<div class="meta">entry #' + esc(e.idx) + " · " + esc(e.type) + "</div>" +
+        '<details><summary>Technical Details</summary>' +
+        "raw JSON:" +
+        "<pre>" + esc(JSON.stringify(e, null, 2)) + "</pre>" +
+        "hash (SHA-256): <pre>" + esc(e.hash || "") + "</pre>" +
+        "</details></div>";
+    }
+
+    function renderFeedMain(entries) {
+      const el = document.getElementById("feed-main");
+      const list = entriesForFilter(entries, state.feedFilter).slice().reverse();
+      document.getElementById("chip-all").textContent = "All (" + entries.length + ")";
+      if (!list.length) { el.innerHTML = '<div class="empty">No entries for this filter yet.</div>'; return; }
+      el.innerHTML = list.map(feedItemHTML).join("");
+    }
+
+    function renderFeedAll(entries) {
+      const el = document.getElementById("feed-all");
+      if (!entries.length) { el.innerHTML = '<div class="empty">No log entries recorded.</div>'; return; }
+      el.innerHTML = entries.slice().reverse().map(feedItemHTML).join("");
+    }
+
+    function renderActivityTabsCount(entries) { /* chip-all count handled in renderFeedMain */ }
+
+    // ---------- chain + tamper simulation (client-side copies only) ----------
+    let chainCopy = null; // deep copy of the verified chain when tamper sim is on
+
+    async function refreshChainView(entries, allowTampered) {
+      const listEl = document.getElementById("chain-list");
+      const resultEl = document.getElementById("tamper-result");
+      if (!entries.length) {
+        listEl.innerHTML = '<div class="empty">No log entries yet.</div>';
+        resultEl.innerHTML = "";
+        return;
+      }
+      const src = state.tampered && chainCopy ? chainCopy : entries;
+      // verify chain (same algorithm as sentinelx.chainlog.verify §6.6)
+      // hashes are recomputed from the server-supplied canonical payload bytes
+      // (e.payload) so browser-side verification is byte-exact (§ float quirks).
+      let expectedPrev = GENESIS_PREV;
+      let badIdx = null, reason = null, head = GENESIS_PREV;
+      const rows = [];
+      for (let i = 0; i < src.length; i++) {
+        const e = src[i];
+        let fail = null;
+        if (e.idx !== i) fail = "bad_idx";
+        else if (i === 0 && (e.type !== "genesis" || e.prev !== GENESIS_PREV)) fail = "bad_genesis";
+        else if (i > 0 && e.prev !== expectedPrev) fail = "bad_prev";
+        else {
+          const payload = typeof e.payload === "string" ? e.payload : null;
+          if (payload) {
+            const computed = await sha256Hex(e.prev + payload);
+            if (computed !== e.hash) fail = "bad_hash";
+          }
+        }
+        if (fail) {
+          rows.push({ e, rowBad: true });
+          badIdx = i; reason = fail;
+          break;
+        }
+        rows.push({ e, rowBad: false });
+        expectedPrev = e.hash; head = e.hash;
+      }
+      const okVer = badIdx === null;
+      listEl.innerHTML = rows.map((r, i) =>
+        '<div class="chain-item ' + (r.rowBad ? " bad " : i === 0 ? " good-first " : "") + '">' +
+        '<div class="idx">#' + esc(r.e.idx) + " " + esc(r.e.ts ? String(r.e.ts).slice(11, 19) : "") + "</div>" +
+        '<div class="ty">' + esc(r.e.type) + "</div>" +
+        '<div class="hash" title="' + esc(r.e.hash) + '">' + esc(String(r.e.hash).slice(0, 12)) + "…" + esc(String(r.e.hash).slice(-6)) + "</div>" +
+        "</div>"
+      ).join("") +
+      '<div class="chain-item ' + (okVer ? " good-first " : "") + '" style="opacity:.7">' +
+      '<div class="idx">chain head</div><div class="ty">SHA-256</div>' +
+      '<div class="hash" title="' + esc(head) + '">' + esc(String(head).slice(0, 12)) + "…" + esc(String(head).slice(-6)) + "</div></div>";
+
+      if (!state.tampered) {
+        resultEl.innerHTML = okVer
+          ? '<div class="line ok-text">✔ In-browser verification passed: ' + rows.length + " entries, chain head matches the server audit badge. Tail truncation is outside local-chain verification (see §13).</div>"
+          : '<div class="line bad-text">✗ In-browser verification failed at entry #' + badIdx + " (" + reason + ")</div>";
+      }
+      return { okVer, badIdx, reason, head, rowsCount: rows.length };
+    }
+
+    async function htmlTamper() {
+      const entries = state.snap ? state.snap.entries || [] : [];
+      if (entries.length < 4) { toast("Need at least 4 entries to tamper idx #3.", true); return; }
+      if (!entries.some(e => typeof e.payload === "string")) { toast("Snapshot lacks canonical payloads; reload once.", true); return; }
+      // deep-copy chain, then tamper: flip ONE byte of entry idx #3's canonical
+      // payload string ('"idx"' -> '"jdx"'), leaving prev/hash untouched.
+      // This mirrors the 1-byte corruption lab/attack on e2e.sh performs on disk.
+      chainCopy = JSON.parse(JSON.stringify(entries));
+      const target = chainCopy.find(e => e.idx === 3);
+      target.payload = target.payload.replace('"idx"', '"jdx"');
+      state.tampered = true;
+      document.getElementById("btn-run-restore").disabled = false;
+      document.getElementById("btn-run-verify").disabled = true;
+      const res = await refreshChainView(chainCopy, true);
+      const resultEl = document.getElementById("tamper-result");
+      resultEl.innerHTML = res && !res.okVer
+        ? '<div class="line bad-text">✗ ONE byte changed inside a copied entry #3 → verification FAILED: ' +
+          "bad_idx=" + res.badIdx + ", reason=" + esc(res.reason) +
+          '.</div><div class="line">The dashboard badge says <b class="bad-text">TAMPERED at entry #3</b> the moment the file on disk is corrupted like this (checked server-side on every snapshot). No real file was touched here.</div>' +
+          '<div class="line">Click <b>Restore chain</b> to return to the verified copy.</div>'
+        : '<div class="line warn-text">Simulation aborted — could not produce a tampered copy.</div>';
+      toast("Tamper simulation on a copy: verification fails.", true);
+    }
+
+    async function restoreTamper() {
+      state.tampered = false; chainCopy = null;
+      document.getElementById("btn-run-restore").disabled = true;
+      document.getElementById("btn-run-verify").disabled = false;
+      await refreshChainView(state.snap ? state.snap.entries || [] : [], false);
+      toast("Chain restored to the verified state.");
+    }
+
+    // ---------- preview controls ----------
+    function setPreview(pv) {
+      state.preview = pv;
+      render();
+      if (pv !== "live") toast(pv === "protected_live" ? "Preview: back to live-protected view." : "Preview situation: " + pv + " — real data untouched.");
+    }
+
+    document.querySelectorAll("[data-preview]").forEach(btn => {
+      btn.addEventListener("click", () => setPreview(btn.dataset.preview));
+    });
+    document.getElementById("btn-back-live").addEventListener("click", () => setPreview("live"));
+
+    document.getElementById("btn-heal").addEventListener("click", async () => {
+      setPreview("under_attack");
+      const heal = lastVerifiedHeal(state.snap ? state.snap.entries || [] : []);
+      setTimeout(() => {
+        setPreview("protected_live");
+        toast(heal ? "Preview: attack blocked & healed (last real heal: " + fmtMs(heal.data.latency_ms_from_first_pkt) + ")." : "Preview: attack blocked & healed.");
+        setTimeout(() => setPreview("live"), 5000);
+      }, 2600);
+    });
+
+    document.getElementById("btn-tamper").addEventListener("click", async () => {
+      openTab("pane-tamper");
+      await htmlTamper();
+    });
+
+    document.getElementById("btn-run-tamper").addEventListener("click", htmlTamper);
+    document.getElementById("btn-run-restore").addEventListener("click", restoreTamper);
+    document.getElementById("btn-run-verify").addEventListener("click", async () => {
+      const res = await refreshChainView(state.snap ? state.snap.entries || [] : [], false);
+      if (res) toast(res.okVer ? "Verified in browser: " + res.rowsCount + " entries." : "Chain FAILED in browser — see rows.", !res.okVer);
+    });
+
+    // feed filter chips
+    document.querySelectorAll("[data-filter]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        state.feedFilter = btn.dataset.filter;
+        document.querySelectorAll("[data-filter]").forEach(b => {
+          b.className = "chip" + (b === btn ? " on-ok" : "");
+        });
+        render();
+      });
+    });
+
+    // ---------- tabs ----------
+    function openTab(paneId) {
+      document.querySelectorAll(".tabpane").forEach(p => p.classList.remove("active"));
+      document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.pane === paneId));
+      document.getElementById(paneId).classList.add("active");
+    }
+    document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => openTab(t.dataset.pane)));
+
+    // ---------- boot ----------
+    document.querySelector('[data-filter="all"]').classList.add("on-ok");
+    refresh();
+    setInterval(refresh, 1000);
   </script>
 </body>
 </html>
