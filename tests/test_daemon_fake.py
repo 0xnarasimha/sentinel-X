@@ -202,3 +202,43 @@ def test_cli_status_and_trust_commands(tmp_path: Path) -> None:
         check=False,
     )
     assert p_trust.returncode == 0
+
+
+def test_sigterm_stop_through_run_lifecycle_writes_daemon_stop(tmp_path: Path) -> None:
+    """Regression: SIGTERM must produce exactly one daemon_stop entry via run()'s teardown.
+
+    The signal handler only requests a stop (_request_stop); run()'s finally block
+    owns shutdown(), so the unpin + daemon_stop entry are written synchronously
+    before the event loop closes (see git history for the detached-task race).
+    """
+    cfg = AppConfig()
+    cfg = replace(
+        cfg,
+        core=replace(cfg.core, iface="v-victim", state_dir=tmp_path, unpin_on_exit=True),
+    )
+    fake_backend = FakeBackend()
+    daemon = Daemon(cfg=cfg, backend=fake_backend, enable_live_sniffer=False)
+
+    async def _scenario() -> None:
+        task = asyncio.create_task(daemon.run())
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + 5.0
+        while not daemon.engine.pinned:
+            if loop.time() > deadline:
+                raise TimeoutError("Daemon did not pin the gateway within 5s")
+            await asyncio.sleep(0.01)
+        daemon._request_stop("SIGTERM")
+        await asyncio.wait_for(task, timeout=5.0)
+
+    asyncio.run(_scenario())
+
+    entries = [
+        json.loads(line)
+        for line in (tmp_path / "log.jsonl").read_text(encoding="utf-8").splitlines()
+    ]
+    stops = [e for e in entries if e["type"] == "daemon_stop"]
+    assert len(stops) == 1
+    assert stops[0]["data"]["reason"] == "SIGTERM"
+    assert stops[0]["data"]["unpinned"] is True
+    assert fake_backend.neigh_get("v-victim", "10.77.0.1") is None
+    assert ChainLog.verify(tmp_path / "log.jsonl").ok is True

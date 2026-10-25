@@ -83,6 +83,8 @@ class Daemon:
             interval_s=2.0,
         )
         self._stop_event = asyncio.Event()
+        self._shutdown_started: bool = False
+        self._stop_reason: str | None = None
         self._extra_dropped: int = 0
 
     @property
@@ -205,8 +207,9 @@ class Daemon:
                 pass
 
     async def shutdown(self, reason: str = "signal") -> None:
-        if self._stop_event.is_set():
+        if self._shutdown_started:
             return
+        self._shutdown_started = True
         self._stop_event.set()
         self.netwatcher.stop()
         if self.sniffer is not None:
@@ -232,13 +235,19 @@ class Daemon:
         )
         self.write_status()
 
+    def _request_stop(self, reason: str) -> None:
+        """Request a stop without touching log state; run()'s teardown path owns shutdown()."""
+        if self._stop_reason is None:
+            self._stop_reason = reason
+        self._stop_event.set()
+
     async def run(self) -> None:
         loop = asyncio.get_running_loop()
         for sig in (signal.SIGINT, signal.SIGTERM):
             try:
                 loop.add_signal_handler(
                     sig,
-                    lambda s=sig: asyncio.create_task(self.shutdown(reason=s.name)),
+                    lambda s=sig: self._request_stop(s.name),
                 )
             except NotImplementedError:  # pragma: no cover
                 pass
@@ -266,7 +275,6 @@ class Daemon:
         finally:
             for t in tasks:
                 t.cancel()
-            await asyncio.gather(*tasks, return_exception=True) if False else None
             for t in tasks:
                 try:
                     await t
@@ -274,4 +282,4 @@ class Daemon:
                     pass
                 except Exception:
                     pass
-            await self.shutdown(reason="exit")
+            await self.shutdown(reason=self._stop_reason or "exit")
