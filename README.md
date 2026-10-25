@@ -22,15 +22,23 @@ Chapters cover: the switched-LAN baseline → ARP-poisoning MITM (watch the vict
 
 ---
 
-## 5-Line Quickstart (Isolated Namespace Lab)
+## Quickstart (Isolated Namespace Lab)
+
+Run from the repo root. Needs `sudo` and `dsniff` (`arpspoof`) for the attack step:
 
 ```bash
+python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 sudo make lab-up
-sudo ip netns exec sx-victim sentinelx run --iface v-victim --state-dir /tmp/sx-demo &
+sudo ip netns exec sx-victim .venv/bin/python3 -m sentinelx run --iface v-victim --state-dir /tmp/sx-demo &
+.venv/bin/python3 -m sentinelx dashboard --port 8787 --state-dir /tmp/sx-demo &   # open http://127.0.0.1:8787
 sudo bash lab/attack.sh 4
-sentinelx verify-log --path /tmp/sx-demo/log.jsonl && sudo make lab-down
+sudo ip netns pids sx-victim | xargs -r kill -TERM   # graceful SIGTERM: unpins + logs daemon_stop
+.venv/bin/python3 -m sentinelx verify-log --path /tmp/sx-demo/log.jsonl
+sudo make lab-down
 ```
+
+The daemon (running as root) creates `/tmp/sx-demo` itself and writes world-readable files, so the dashboard and `verify-log` work fine as your normal user.
 
 ---
 
