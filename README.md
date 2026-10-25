@@ -33,7 +33,7 @@ sudo make lab-up
 sudo ip netns exec sx-victim .venv/bin/python3 -m sentinelx run --iface v-victim --state-dir /tmp/sx-demo &
 .venv/bin/python3 -m sentinelx dashboard --port 8787 --state-dir /tmp/sx-demo &   # open http://127.0.0.1:8787
 sudo bash lab/attack.sh 4
-sudo ip netns pids sx-victim | xargs -r kill -TERM   # graceful SIGTERM: unpins + logs daemon_stop
+sudo ip netns pids sx-victim | sudo xargs -r kill -TERM   # graceful SIGTERM: unpins + logs daemon_stop (needs sudo on BOTH sides of the pipe)
 .venv/bin/python3 -m sentinelx verify-log --path /tmp/sx-demo/log.jsonl
 sudo make lab-down
 ```
