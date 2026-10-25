@@ -10,6 +10,18 @@ Lightweight Linux daemon (Python 3.11 + Scapy + iproute2) that protects a host f
 
 ---
 
+## 🎬 Interactive Concept Simulator (Live)
+
+Want to *see* the whole story before running the daemon? An interactive 3D web simulator walks through the exact concepts Sentinel-X implements — launched live in your browser, nothing to install:
+
+**▶ [https://sentinel-x-interactive-explainer.vercel.app](https://sentinel-x-interactive-explainer.vercel.app)**
+
+Chapters cover: the switched-LAN baseline → ARP-poisoning MITM (watch the victim's cache get poisoned live) → TOFU gateway pinning → Rule-R1 detection with automatic corrective-ARP heal → a hands-on SHA-256 hash-chain tamper lab (edit / delete / truncate and see the chain break).
+
+> The simulator is a visual teaching aid for the **concept behind the project**; the daemon in this repo is the real implementation.
+
+---
+
 ## 5-Line Quickstart (Isolated Namespace Lab)
 
 ```bash
